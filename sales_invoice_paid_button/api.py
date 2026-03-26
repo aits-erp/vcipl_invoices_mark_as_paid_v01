@@ -11,40 +11,48 @@ def mark_invoice_paid(docname):
     si = frappe.get_doc("Sales Invoice", docname)
 
     if si.docstatus == 2:
-        frappe.throw("Invoice is Cancelled")
+        frappe.throw("Sales Invoice is Cancelled")
 
     if si.outstanding_amount <= 0:
-        frappe.throw("Already Paid")
+        frappe.throw("Sales Invoice is already fully Paid")
 
-    # Submit if draft
+    # If invoice is draft, submit first
     if si.docstatus == 0:
         si.submit()
         si.reload()
 
-    # Create Payment Entry using ERPNext logic
+    outstanding_amount = si.outstanding_amount
+
     pe = get_payment_entry(
         dt="Sales Invoice",
         dn=si.name,
-        party_amount=si.outstanding_amount
+        party_amount=outstanding_amount
     )
 
     pe.posting_date = nowdate()
 
-    # 🔥 IMPORTANT PART (force full allocation)
-    for ref in pe.references:
-        ref.allocated_amount = si.outstanding_amount
+    # mandatory for bank transaction
+    pe.reference_no = si.name
+    pe.reference_date = nowdate()
 
-    pe.paid_amount = si.outstanding_amount
-    pe.received_amount = si.outstanding_amount
+    # force full allocation
+    pe.paid_amount = outstanding_amount
+    pe.received_amount = outstanding_amount
+
+    for ref in pe.references:
+        if ref.reference_doctype == "Sales Invoice" and ref.reference_name == si.name:
+            ref.allocated_amount = outstanding_amount
 
     pe.insert(ignore_permissions=True)
     pe.submit()
 
-    # 🔥 Reload invoice to update status
+    frappe.db.commit()
+
     si.reload()
 
     return {
         "status": "success",
         "invoice": si.name,
-        "outstanding": si.outstanding_amount
+        "payment_entry": pe.name,
+        "outstanding_amount": si.outstanding_amount
     }
