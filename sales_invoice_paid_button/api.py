@@ -9,10 +9,17 @@ def mark_invoice_paid(docname):
 
     doc = frappe.get_doc("Sales Invoice", docname)
 
-    if doc.docstatus != 0:
-        frappe.throw(f"Sales Invoice {docname} must be in Draft state")
+    if doc.docstatus == 2:
+        frappe.throw(f"Sales Invoice {docname} is cancelled")
 
-    doc.submit()
+    if doc.outstanding_amount <= 0:
+        frappe.throw(f"Sales Invoice {docname} is already fully paid")
+
+    if doc.docstatus == 0:
+        doc.submit()
+        doc.reload()
+
+    outstanding_amount = doc.outstanding_amount
 
     pe = frappe.new_doc("Payment Entry")
     pe.payment_type = "Receive"
@@ -20,15 +27,15 @@ def mark_invoice_paid(docname):
     pe.party = doc.customer
     pe.company = doc.company
     pe.posting_date = nowdate()
-    pe.paid_amount = doc.grand_total
-    pe.received_amount = doc.grand_total
+    pe.paid_amount = outstanding_amount
+    pe.received_amount = outstanding_amount
     pe.reference_no = doc.name
     pe.reference_date = nowdate()
 
     pe.append("references", {
         "reference_doctype": "Sales Invoice",
         "reference_name": doc.name,
-        "allocated_amount": doc.outstanding_amount or doc.grand_total
+        "allocated_amount": outstanding_amount
     })
 
     pe.insert(ignore_permissions=True)
@@ -36,7 +43,4 @@ def mark_invoice_paid(docname):
 
     frappe.db.commit()
 
-    return {
-        "status": "success",
-        "invoice": doc.name
-    }
+    return {"status": "success", "invoice": doc.name}

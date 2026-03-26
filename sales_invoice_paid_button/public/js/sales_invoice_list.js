@@ -1,5 +1,15 @@
+console.log("Sales Invoice List JS Loaded");
+
 frappe.listview_settings['Sales Invoice'] = {
-    onload(listview) {
+    refresh(listview) {
+        console.log("Sales Invoice list refresh triggered");
+
+        if (listview.page.__paid_action_added) {
+            return;
+        }
+
+        listview.page.__paid_action_added = true;
+
         listview.page.add_action_item(__('Mark as Paid'), async function () {
             const selected = listview.get_checked_items();
 

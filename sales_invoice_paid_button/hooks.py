@@ -7,8 +7,8 @@ app_license = "mit"
 
 # Apps
 # ------------------
-doctype_js = {
-    "Sales Invoice": "public/js/sales_invoice.js"
+doctype_list_js = {
+    "Sales Invoice": "public/js/sales_invoice_list.js"
 }
 # required_apps = []
 
