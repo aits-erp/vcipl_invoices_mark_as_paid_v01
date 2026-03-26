@@ -16,7 +16,6 @@ def mark_invoice_paid(docname):
     if si.outstanding_amount <= 0:
         frappe.throw("Sales Invoice is already fully Paid")
 
-    # If invoice is draft, submit first
     if si.docstatus == 0:
         si.submit()
         si.reload()
@@ -30,12 +29,19 @@ def mark_invoice_paid(docname):
     )
 
     pe.posting_date = nowdate()
-
-    # mandatory for bank transaction
     pe.reference_no = si.name
     pe.reference_date = nowdate()
 
-    # force full allocation
+    # optional fallback
+    if not pe.mode_of_payment:
+        default_mop = frappe.db.get_value(
+            "Mode of Payment Account",
+            {"company": si.company},
+            "parent"
+        )
+        if default_mop:
+            pe.mode_of_payment = default_mop
+
     pe.paid_amount = outstanding_amount
     pe.received_amount = outstanding_amount
 
@@ -47,12 +53,10 @@ def mark_invoice_paid(docname):
     pe.submit()
 
     frappe.db.commit()
-
     si.reload()
 
     return {
         "status": "success",
         "invoice": si.name,
-        "payment_entry": pe.name,
-        "outstanding_amount": si.outstanding_amount
+        "payment_entry": pe.name
     }
