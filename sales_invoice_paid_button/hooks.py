@@ -5,11 +5,19 @@ app_description = "dhfgdhfb"
 app_email = "nehalpatil8983@gmail.com"
 app_license = "mit"
 
-# Apps
-# ------------------
 doctype_list_js = {
     "Sales Invoice": "public/js/sales_invoice_list.js"
 }
+
+doc_events = {
+    "*": {
+        "validate": (
+            "sales_invoice_paid_button.utils."
+            "posting_date_validation.validate_posting_date"
+        )
+    }
+}
+
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
