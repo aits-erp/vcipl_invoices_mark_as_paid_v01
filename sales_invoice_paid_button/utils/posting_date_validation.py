@@ -13,7 +13,7 @@ CANCELLATION_OVERRIDE_ROLE = "Sales Invoice Cancellation Override"
 
 
 def enable_cancellation_override(doc, method=None):
-    if frappe.has_role(CANCELLATION_OVERRIDE_ROLE):
+    if CANCELLATION_OVERRIDE_ROLE in frappe.get_roles():
         frappe.flags.sales_invoice_paid_button_cancellation_override = (
             frappe.flags.sales_invoice_paid_button_cancellation_override or 0
         ) + 1
