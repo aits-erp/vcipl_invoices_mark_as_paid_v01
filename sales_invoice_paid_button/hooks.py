@@ -11,10 +11,18 @@ doctype_list_js = {
 
 doc_events = {
     "*": {
+        "before_cancel": (
+            "sales_invoice_paid_button.utils."
+            "posting_date_validation.enable_cancellation_override"
+        ),
         "validate": (
             "sales_invoice_paid_button.utils."
             "posting_date_validation.validate_posting_date"
-        )
+        ),
+        "on_cancel": (
+            "sales_invoice_paid_button.utils."
+            "posting_date_validation.disable_cancellation_override"
+        ),
     }
 }
 

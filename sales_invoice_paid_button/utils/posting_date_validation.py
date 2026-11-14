@@ -10,11 +10,22 @@ DATE_FIELDS = [
 ]
 
 CANCELLATION_OVERRIDE_ROLE = "Sales Invoice Cancellation Override"
-    
+
+
+def enable_cancellation_override(doc, method=None):
+    if frappe.has_role(CANCELLATION_OVERRIDE_ROLE):
+        frappe.flags.sales_invoice_paid_button_cancellation_override = (
+            frappe.flags.sales_invoice_paid_button_cancellation_override or 0
+        ) + 1
+
+
+def disable_cancellation_override(doc, method=None):
+    if frappe.flags.sales_invoice_paid_button_cancellation_override:
+        frappe.flags.sales_invoice_paid_button_cancellation_override -= 1
 
 def validate_posting_date(doc, method=None):
 
-    if doc.docstatus == 2 and frappe.has_role(CANCELLATION_OVERRIDE_ROLE):
+    if frappe.flags.sales_invoice_paid_button_cancellation_override:
         return
 
     cutoff_date = add_months(getdate(today()), -1)
