@@ -8,9 +8,14 @@ DATE_FIELDS = [
     "schedule_date",
     "due_date",
 ]
+
+CANCELLATION_OVERRIDE_ROLE = "Sales Invoice Cancellation Override"
     
 
 def validate_posting_date(doc, method=None):
+
+    if doc.docstatus == 2 and frappe.has_role(CANCELLATION_OVERRIDE_ROLE):
+        return
 
     cutoff_date = add_months(getdate(today()), -1)
 

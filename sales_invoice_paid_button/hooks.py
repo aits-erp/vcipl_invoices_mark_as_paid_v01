@@ -18,6 +18,13 @@ doc_events = {
     }
 }
 
+fixtures = [
+    {
+        "doctype": "Role",
+        "filters": [["role_name", "=", "Sales Invoice Cancellation Override"]],
+    }
+]
+
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
